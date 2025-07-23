@@ -11,7 +11,7 @@
         <input type="text" id="short_id" name="short_id" required>
         <button type="submit">Get Analytics</button>
     </form>
-    {% if long_url %}
+    {% if short_id %}
         <p>Short ID: <strong>{{ short_id }}</strong></p>
         <p>Long URL: <a href="{{ long_url }}">{{ long_url }}</a></p>
     {% endif %}
