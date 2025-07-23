@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analytics Short URL</title>
+</head>
+<body>
+    <h1>Analytics Short URL</h1>
+    <form method="POST" action="/analytics">
+        <label for="short_id">Enter Short ID:</label>
+        <input type="text" id="short_id" name="short_id" required>
+        <button type="submit">Get Analytics</button>
+    </form>
+    {% if long_url %}
+        <p>Short ID: <strong>{{ short_id }}</strong></p>
+        <p>Long URL: <a href="{{ long_url }}">{{ long_url }}</a></p>
+    {% endif %}
+</body>
+</html>
