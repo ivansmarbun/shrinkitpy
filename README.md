@@ -9,6 +9,7 @@ You can run this project in two ways:
 1. Build the Docker image:
    ```bash
    docker build -t shrinkitpy .
+
    ```
 2. Run the container:
    ```bash
@@ -37,6 +38,27 @@ You can run this project in two ways:
 - `app.py`: Main Flask app and routes
 - `services/`: Contains database and URL logic
 - `templates/`: HTML templates for web forms
+
+## Code Quality and Linting
+
+This project uses [pre-commit](https://pre-commit.com/) to automatically check and format code before each commit using flake8, ruff, and black.
+
+### Setup pre-commit
+
+1. Install all dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Install the pre-commit hook:
+   ```bash
+   pre-commit install
+   ```
+3. (Optional) Run pre-commit on all files:
+   ```bash
+   pre-commit run --all-files
+   ```
+
+Now, every time you commit, pre-commit will check and format your code automatically.
 
 ## Usage
 - **Shorten URL:** Use the form on the homepage or POST to `/shorten` with JSON `{ "url": "LONG_URL" }`
