@@ -1,45 +1,51 @@
-import unittest
+import pytest
 from app import app
 
-class FlaskURLTestCase(unittest.TestCase):
-    def setUp(self):
-        self.app = app.test_client()
-        self.app.testing = True
 
-    def test_index_get(self):
-        response = self.app.get('/')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'<form', response.data)
+@pytest.fixture
+def client():
+    app.testing = True
+    with app.test_client() as client:
+        yield client
 
-    def test_index_post(self):
-        response = self.app.post('/', data={'url': 'https://example.com'})
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Shortened URL:', response.data)
 
-    def test_shorten_post(self):
-        response = self.app.post('/shorten', json={'url': 'https://example.com'})
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'short_url', response.data)
+def test_index_get(client):
+    response = client.get("/")
+    assert response.status_code == 200
+    assert b"<form" in response.data
 
-    def test_shorten_post_missing_url(self):
-        response = self.app.post('/shorten', json={})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn(b'Missing URL', response.data)
 
-    def test_redirect_short_url_not_found(self):
-        response = self.app.get('/s/invalidid')
-        self.assertEqual(response.status_code, 404)
-        self.assertIn(b'URL not found', response.data)
+def test_index_post(client):
+    response = client.post("/", data={"url": "https://example.com"})
+    assert response.status_code == 200
+    assert b"Shortened URL:" in response.data
 
-    def test_analytics_get(self):
-        response = self.app.get('/analytics')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'<form', response.data)
 
-    def test_analytics_post_missing_short_url(self):
-        response = self.app.post('/analytics', json={})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn(b'Missing short_url', response.data)
+def test_shorten_post(client):
+    response = client.post("/shorten", json={"url": "https://example.com"})
+    assert response.status_code == 200
+    assert b"short_url" in response.data
 
-if __name__ == '__main__':
-    unittest.main()
+
+def test_shorten_post_missing_url(client):
+    response = client.post("/shorten", json={})
+    assert response.status_code == 400
+    assert b"Missing URL" in response.data
+
+
+def test_redirect_short_url_not_found(client):
+    response = client.get("/s/invalidid")
+    assert response.status_code == 404
+    assert b"URL not found" in response.data
+
+
+def test_analytics_get(client):
+    response = client.get("/analytics")
+    assert response.status_code == 200
+    assert b"<form" in response.data
+
+
+def test_analytics_post_missing_short_url(client):
+    response = client.post("/analytics", json={})
+    assert response.status_code == 400
+    assert b"Missing short_url" in response.data

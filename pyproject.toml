@@ -1,0 +1,8 @@
+[tool.ruff]
+select = ["E", "F"]
+ignore = []
+line-length = 79
+
+[tool.black]
+line-length = 79
+target-version = ['py312']
