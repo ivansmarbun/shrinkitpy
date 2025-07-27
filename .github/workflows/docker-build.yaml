@@ -86,6 +86,8 @@ jobs:
 
   # Job name (you can have multiple jobs)
   build-and-push:
+    # Only run for non-pull-request events
+    if: github.event_name != 'pull_request'
     # This job depends on lint-and-test job completing successfully
     needs: lint-and-test
     # What operating system should this job run on?
