@@ -3,6 +3,7 @@ repos:
     rev: 7.3.0
     hooks:
       - id: flake8
+        args: ['--max-line-length=90']  # Match Black's default
         additional_dependencies: []
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.4.4
