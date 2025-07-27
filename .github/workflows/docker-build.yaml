@@ -1,0 +1,70 @@
+# This file should be placed at: .github/workflows/docker-build.yml
+
+name: Build and Push Docker Image
+
+# When should this workflow run?
+on:
+  push:
+    branches: [ master ]  # Only run when pushing to master branch
+  pull_request:
+    branches: [ master ]  # Also run on PRs to master (for testing)
+
+# Environment variables that will be available to all jobs
+env:
+  DOCKER_IMAGE: ivansmarbun/shrinkitpy  # Replace with your Docker Hub username/repo
+  DOCKER_PLATFORM: linux/amd64,linux/arm64  # Build for multiple architectures
+
+# A workflow can have multiple jobs that run in parallel or sequence
+jobs:
+  # Job name (you can have multiple jobs)
+  build-and-push:
+    # What operating system should this job run on?
+    runs-on: ubuntu-latest
+    
+    # Individual steps that make up this job
+    steps:
+    # Step 1: Get the source code
+    - name: Checkout code
+      uses: actions/checkout@v4  # This is a pre-built action from GitHub marketplace
+      # actions/checkout downloads your repository code to the runner
+    
+    # Step 2: Set up Docker Buildx (advanced Docker builder)
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      # Buildx allows us to build multi-platform images and use advanced features
+    
+    # Step 3: Log in to Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}  # This comes from GitHub secrets
+        password: ${{ secrets.DOCKERHUB_TOKEN }}     # This too - we'll set these up
+    
+    # Step 4: Extract metadata (tags, labels) for Docker
+    - name: Extract metadata
+      id: meta  # We give this step an ID so we can reference its outputs later
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.DOCKER_IMAGE }}
+        # This will generate tags like:
+        # - latest (for master branch)
+        # - sha-abc1234 (git commit hash)
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    # Step 5: Build and push Docker image
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .  # Build context (where your Dockerfile is)
+        file: ./Dockerfile  # Path to Dockerfile
+        platforms: ${{ env.DOCKER_PLATFORM }}  # Build for multiple architectures
+        push: ${{ github.event_name != 'pull_request' }}  # Only push if not a PR
+        tags: ${{ steps.meta.outputs.tags }}  # Use tags from metadata step
+        labels: ${{ steps.meta.outputs.labels }}  # Use labels from metadata step
+        # Cache settings to speed up builds
+        cache-from: type=gha  # Use GitHub Actions cache
+        cache-to: type=gha,mode=max
