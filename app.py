@@ -1,14 +1,20 @@
 from flask import Flask, request, jsonify, redirect, render_template
+import os
 from utils.utils import generate_short_id
-from services.db import init_db, close_connection
 from services.urls import get_analytics, save_url, get_long_url
+from config import DevelopmentConfig, ProductionConfig, TestConfig, config
 
 app = Flask(__name__)
 
-with app.app_context():
-    init_db()
-app.teardown_appcontext(close_connection)
-
+# Load configuration
+# Determine which configuration to use based on FLASK_ENV
+env = os.environ.get("FLASK_ENV", "development")
+if env == 'development':
+    app.config.from_object(DevelopmentConfig)
+elif env == 'testing':
+    app.config.from_object(TestConfig)
+else:
+    app.config.from_object(ProductionConfig)
 
 @app.route("/", methods=["GET", "POST"])
 def index():

@@ -19,6 +19,23 @@ jobs:
   # Job to run linting and tests
   lint-and-test:
     runs-on: ubuntu-latest
+    
+    # Add PostgreSQL service for testing
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: user
+          POSTGRES_DB: shrinkitpy_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     steps:
     # Step 1: Get the source code
     - name: Checkout code
@@ -52,8 +69,18 @@ jobs:
       run: |
         flake8 .
     
-    # Step 7: Run unit tests
+    # Step 7: Run database migrations
+    - name: Run migrations
+      env:
+        DATABASE_URL: postgresql://user:password@localhost:5432/shrinkitpy_test
+      run: |
+        python migrate.py migrate
+    
+    # Step 8: Run unit tests
     - name: Run tests with pytest
+      env:
+        DATABASE_URL: postgresql://user:password@localhost:5432/shrinkitpy_test
+        FLASK_ENV: testing
       run: |
         pytest -v --tb=short
 
