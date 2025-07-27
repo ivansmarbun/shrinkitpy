@@ -10,14 +10,14 @@ def client():
     os.environ["FLASK_ENV"] = "testing"
     app.config.from_object("config.TestConfig")
     app.testing = True
-    
+
     # Run migrations for test database
     manager = MigrationManager(app.config["DATABASE_URL"])
     manager.migrate()
-    
+
     with app.test_client() as client:
         yield client
-        
+
     # Clean up test database after tests
     # You might want to truncate tables or reset the database here
 

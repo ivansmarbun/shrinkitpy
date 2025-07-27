@@ -2,19 +2,20 @@ from flask import Flask, request, jsonify, redirect, render_template
 import os
 from utils.utils import generate_short_id
 from services.urls import get_analytics, save_url, get_long_url
-from config import DevelopmentConfig, ProductionConfig, TestConfig, config
+from config import DevelopmentConfig, ProductionConfig, TestConfig
 
 app = Flask(__name__)
 
 # Load configuration
 # Determine which configuration to use based on FLASK_ENV
 env = os.environ.get("FLASK_ENV", "development")
-if env == 'development':
+if env == "development":
     app.config.from_object(DevelopmentConfig)
-elif env == 'testing':
+elif env == "testing":
     app.config.from_object(TestConfig)
 else:
     app.config.from_object(ProductionConfig)
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -68,9 +69,7 @@ def analytics():
                 long_url = urls[1]
             else:
                 long_url = None
-    return render_template(
-        "analytics.html", short_id=short_id, long_url=long_url
-    )
+    return render_template("analytics.html", short_id=short_id, long_url=long_url)
 
 
 if __name__ == "__main__":

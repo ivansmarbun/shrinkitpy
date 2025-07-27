@@ -7,11 +7,16 @@ load_dotenv()
 
 class Config:
     # Database Configuration
-    DATABASE_URL = os.environ.get("DATABASE_URL") or "postgresql://user:password@localhost:5432/shrinkitpy"
-    
+    DATABASE_URL = (
+        os.environ.get("DATABASE_URL")
+        or "postgresql://user:password@localhost:5432/shrinkitpy"
+    )
+
     # Flask Configuration
-    SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key-please-change-in-production"
-    
+    SECRET_KEY = (
+        os.environ.get("SECRET_KEY") or "dev-secret-key-please-change-in-production"
+    )
+
     # Environment
     ENV = os.environ.get("FLASK_ENV") or "development"
     DEBUG = ENV == "development"
@@ -27,7 +32,10 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    DATABASE_URL = os.environ.get("DATABASE_URL") or "postgresql://user:password@localhost:5432/shrinkitpy_dev"
+    DATABASE_URL = (
+        os.environ.get("DATABASE_URL")
+        or "postgresql://user:password@localhost:5432/shrinkitpy_dev"
+    )
 
 
 class ProductionConfig(Config):
@@ -37,7 +45,10 @@ class ProductionConfig(Config):
 
 class TestConfig(Config):
     TESTING = True
-    DATABASE_URL = os.environ.get("TEST_DATABASE_URL") or "postgresql://user:password@localhost:5432/shrinkitpy_test"
+    DATABASE_URL = (
+        os.environ.get("TEST_DATABASE_URL")
+        or "postgresql://user:password@localhost:5432/shrinkitpy_test"
+    )
 
 
 config = {

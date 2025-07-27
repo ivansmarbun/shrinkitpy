@@ -1,9 +1,7 @@
 import os
-import sys
 import importlib.util
 from datetime import datetime
 import psycopg2
-from psycopg2.extras import RealDictCursor
 
 
 class MigrationManager:
@@ -20,13 +18,15 @@ class MigrationManager:
         """Create migrations table if it doesn't exist"""
         with self.get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS schema_migrations (
                         id SERIAL PRIMARY KEY,
                         version VARCHAR(255) UNIQUE NOT NULL,
                         applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """)
+                """
+                )
                 conn.commit()
 
     def get_applied_migrations(self):
@@ -40,27 +40,29 @@ class MigrationManager:
         """Get list of migrations that haven't been applied"""
         applied = set(self.get_applied_migrations())
         all_migrations = []
-        
+
         if os.path.exists(self.migrations_dir):
             for filename in sorted(os.listdir(self.migrations_dir)):
-                if (filename.endswith(".py") and 
-                    not filename.startswith("__") and 
-                    filename != "manager.py"):  # Exclude the manager file itself
+                if (
+                    filename.endswith(".py")
+                    and not filename.startswith("__")
+                    and filename != "manager.py"
+                ):  # Exclude the manager file itself
                     version = filename[:-3]  # Remove .py extension
                     if version not in applied:
                         all_migrations.append(version)
-        
+
         return all_migrations
 
     def create_migration(self, name):
         """Create a new migration file"""
         if not os.path.exists(self.migrations_dir):
             os.makedirs(self.migrations_dir)
-        
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{timestamp}_{name}.py"
         filepath = os.path.join(self.migrations_dir, filename)
-        
+
         template = f'''"""
 Migration: {name}
 Created: {datetime.now().isoformat()}
@@ -92,40 +94,40 @@ def down(cur):
     # cur.execute("DROP TABLE IF EXISTS example")
     pass
 '''
-        
-        with open(filepath, 'w') as f:
+
+        with open(filepath, "w") as f:
             f.write(template)
-        
+
         print(f"Created migration: {filepath}")
         return filepath
 
     def run_migration(self, version):
         """Run a specific migration"""
         migration_path = os.path.join(self.migrations_dir, f"{version}.py")
-        
+
         if not os.path.exists(migration_path):
             raise Exception(f"Migration file not found: {migration_path}")
-        
+
         # Load the migration module
         spec = importlib.util.spec_from_file_location(version, migration_path)
         migration_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(migration_module)
-        
+
         with self.get_connection() as conn:
             with conn.cursor() as cur:
                 try:
                     # Run the migration
                     migration_module.up(cur)
-                    
+
                     # Record that this migration was applied
                     cur.execute(
                         "INSERT INTO schema_migrations (version) VALUES (%s)",
-                        (version,)
+                        (version,),
                     )
-                    
+
                     conn.commit()
                     print(f"Applied migration: {version}")
-                    
+
                 except Exception as e:
                     conn.rollback()
                     print(f"Error applying migration {version}: {e}")
@@ -134,45 +136,45 @@ def down(cur):
     def migrate(self):
         """Run all pending migrations"""
         pending = self.get_pending_migrations()
-        
+
         if not pending:
             print("No pending migrations")
             return
-        
+
         print(f"Found {len(pending)} pending migrations")
-        
+
         for version in pending:
             self.run_migration(version)
-        
+
         print("All migrations completed")
 
     def rollback(self, version):
         """Rollback a specific migration"""
         migration_path = os.path.join(self.migrations_dir, f"{version}.py")
-        
+
         if not os.path.exists(migration_path):
             raise Exception(f"Migration file not found: {migration_path}")
-        
+
         # Load the migration module
         spec = importlib.util.spec_from_file_location(version, migration_path)
         migration_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(migration_module)
-        
+
         with self.get_connection() as conn:
             with conn.cursor() as cur:
                 try:
                     # Run the rollback
                     migration_module.down(cur)
-                    
+
                     # Remove migration record
                     cur.execute(
                         "DELETE FROM schema_migrations WHERE version = %s",
-                        (version,)
+                        (version,),
                     )
-                    
+
                     conn.commit()
                     print(f"Rolled back migration: {version}")
-                    
+
                 except Exception as e:
                     conn.rollback()
                     print(f"Error rolling back migration {version}: {e}")
@@ -182,7 +184,7 @@ def down(cur):
         """Show migration status"""
         applied = self.get_applied_migrations()
         pending = self.get_pending_migrations()
-        
+
         print("Migration Status:")
         print("================")
 
@@ -190,11 +192,11 @@ def down(cur):
             print("\nApplied migrations:")
             for version in applied:
                 print(f"  ✓ {version}")
-        
+
         if pending:
-            print(f"\nPending migrations:")
+            print("\nPending migrations:")
             for version in pending:
                 print(f"  ○ {version}")
-        
+
         if not applied and not pending:
             print("No migrations found")

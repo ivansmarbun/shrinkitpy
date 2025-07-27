@@ -1,24 +1,22 @@
 import psycopg2
 import psycopg2.extras
 from flask import g, current_app
-import os
 
 
 def get_db_connection():
     """Get database connection from Flask g object"""
     db_config = current_app.config["DATABASE_CONFIG"]
     connection = psycopg2.connect(
-        dbname=db_config['dbname'],
-        user=db_config['user'],
-        password=db_config['password'],
-        host=db_config['host'],
-        port=db_config['port']
+        dbname=db_config["dbname"],
+        user=db_config["user"],
+        password=db_config["password"],
+        host=db_config["host"],
+        port=db_config["port"],
     )
     return connection
 
 
 def init_db():
-    """Initialize database tables - this is now deprecated, use migrations instead"""
     with current_app.app_context():
         conn = current_app.config["DATABASE_CONFIG"]
         with conn.cursor() as cur:
